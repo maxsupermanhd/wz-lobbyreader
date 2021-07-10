@@ -150,7 +150,7 @@ int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 	#define IGNORE_FIRST_BATCH 1
 	if((params & IGNORE_FIRST_BATCH) == IGNORE_FIRST_BATCH) {
 		r->rooms.clear();
-		ReadRooms(s, r->rooms);
 	}
+	ReadRooms(s, r->rooms);
 	return 0;
 }
