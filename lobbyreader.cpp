@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <unistd.h>
+#include <netdb.h>
 
 static void SetSocketTimeout(int fd, int timeout) {
 	struct timeval tv;
@@ -22,7 +23,17 @@ static int OpenSocket() {
 	}
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(9990);
-	if(inet_pton(AF_INET, "88.198.45.216", &serv_addr.sin_addr)<=0) {
+	char ip[64] = {0};
+	struct hostent *he;
+	struct in_addr **addr_list;
+	if((he = gethostbyname("lobby.wz2100.net")) == NULL) {
+		return -2;
+	}
+	addr_list = (struct in_addr **) he->h_addr_list;
+	for(int i = 0; addr_list[i] != NULL; i++) {
+		strcpy(ip, inet_ntoa(*addr_list[i]));
+	}
+	if(inet_pton(AF_INET, ip, &serv_addr.sin_addr)<=0) {
 		return -2;
 	}
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
