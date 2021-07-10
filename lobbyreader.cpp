@@ -113,15 +113,7 @@ static bool ReadGAMESTRUCT(int s, LobbyGame* g) {
 	return true;
 }
 
-int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
-	int s = OpenSocket();
-	if(s < 0) {
-		return 1;
-	}
-	SetSocketTimeout(s, t);
-	if(write(s, "list", strlen("list")) != strlen("list")) {
-		return 1;
-	}
+int ReadRooms(int s, std::vector<struct LobbyGame> &v) {
 	uint32_t roomsLen = -1;
 	if(!ReadU32(s, &roomsLen) || roomsLen < 0) {
 		return 1;
@@ -131,7 +123,20 @@ int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 		if(!ReadGAMESTRUCT(s, &g)) {
 			return 1;
 		}
-		r->rooms.push_back(g);
+		v.push_back(g);
+	}
+	return 0;
+}
+
+int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
+	int s = OpenSocket();
+	if(s < 0) {
+		return 1;
+	}
+	SetSocketTimeout(s, t);
+	if( write(s, "list", strlen("list")) != strlen("list") ||
+		ReadRooms(s, r->rooms)) {
+		return 1;
 	}
 	uint32_t code = -1, motdLen = 0, params = 0;
 	if( !ReadU32(s, &code) ||
@@ -145,16 +150,7 @@ int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 	#define IGNORE_FIRST_BATCH 1
 	if((params & IGNORE_FIRST_BATCH) == IGNORE_FIRST_BATCH) {
 		r->rooms.clear();
-		if(!ReadU32(s, &roomsLen) || roomsLen < 0) {
-			return 1;
-		}
-		for(int i=0; i<roomsLen; i++) {
-			struct LobbyGame g;
-			if(!ReadGAMESTRUCT(s, &g)) {
-				return 1;
-			}
-			r->rooms.push_back(g);
-		}
+		ReadRooms(s, r->rooms);
 	}
 	return 0;
 }
