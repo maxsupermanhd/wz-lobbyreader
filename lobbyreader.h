@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <string>
 
 #define	LobbyStringSize 64
 #define Lobbyextra_string_size 157
@@ -13,22 +14,22 @@
 struct LobbyGame {
 	uint32_t	GAMESTRUCT_VERSION;
 
-	char		name[LobbyStringSize];
+	std::string	name;
 	
 	int32_t dwSize;
 	int32_t dwFlags;
-	char host[40];	// host's ip address (can fit a full IPv4 and IPv6 address + terminating NUL)
+	std::string host;	// host's ip address (can fit a full IPv4 and IPv6 address + terminating NUL)
 	int32_t dwMaxPlayers;
 	int32_t dwCurrentPlayers;
 	int32_t dwUserFlags[4];
 	
-	char		secondaryHosts[2][40];
-	char		extra[Lobbyextra_string_size];		// extra string (future use)
+	std::string	secondaryHosts[2];
+	std::string	extra;		// extra string (future use)
 	uint16_t	hostPort;						// server port
-	char		mapname[Lobbymap_string_size];		// map server is hosting
-	char		hostname[Lobbyhostname_string_size];	// ...
-	char		versionstring[LobbyStringSize];		//
-	char		modlist[Lobbymodlist_string_size];	// ???
+	std::string	mapname;		// map server is hosting
+	std::string	hostname;	// ...
+	std::string	versionstring;		//
+	std::string	modlist;	// ???
 	uint32_t	game_version_major;				//
 	uint32_t	game_version_minor;				//
 	uint32_t	privateGame;					// if true, it is a private game
@@ -43,13 +44,11 @@ struct LobbyGame {
 };
 
 struct LobbyResponse {
-	uint32_t roomsLen = 0;
-	struct LobbyGame* rooms = NULL;
-	uint32_t motdLen = 0;
-	char* motd = NULL;
+	std::vector<struct LobbyGame> rooms;
+	uint32_t code = 0;
+	std::string motd = "";
 };
 
 int GetLobby(struct LobbyResponse* r, int t = 3);
-void FreeLobbyResponse(LobbyResponse* g);
 
 #endif

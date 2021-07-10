@@ -5,14 +5,14 @@
 int main() {
 	struct LobbyResponse L;
 	if(GetLobby(&L)) {
-		FreeLobbyResponse(&L);
+		printf("Error!\n");
+		return 1;
 	}
-	printf("Games in lobby: %d\n", L.roomsLen);
-	for(int i=0; i<L.roomsLen; i++) {
-		struct LobbyGame g = L.rooms[i];
+	printf("Games in lobby: %ld\n", L.rooms.size());
+	for(const auto g : L.rooms) {
 		printf("Game %d\nName [%s]\nMap [%s]\nPlayers %d/%d\n",
-			g.gameId, g.name, g.mapname, g.dwCurrentPlayers, g.dwMaxPlayers);
+			g.gameId, g.name.c_str(), g.mapname.c_str(), g.dwCurrentPlayers, g.dwMaxPlayers);
 	}
-	printf("MOTD [%s]\n", L.motd);
-	FreeLobbyResponse(&L);
+	printf("MOTD [%s]\n", L.motd.c_str());
+	return 0;
 }

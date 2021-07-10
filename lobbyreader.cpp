@@ -68,26 +68,37 @@ static bool ReadChars(int s, char* p, size_t size) {
 	return true;
 }
 
+static bool ReadString(int s, std::string &p, size_t size) {
+	char* m = (char*)malloc(size+1);
+	if(recv(s, m, size, MSG_WAITALL) != size) {
+		return false;
+	}
+	m[size] = '\0';
+	p = std::string(m, size);
+	free(m);
+	return true;
+}
+
 static bool ReadGAMESTRUCT(int s, LobbyGame* g) {
 	if( !ReadU32(s, &g->GAMESTRUCT_VERSION) ||
-		!ReadChars(s, (char*)g->name, LobbyStringSize) ||
+		!ReadString(s, g->name, LobbyStringSize) ||
 		!ReadI32(s, &g->dwSize) ||
 		!ReadI32(s, &g->dwFlags) ||
-		!ReadChars(s, (char*)g->host, 40) ||
+		!ReadString(s, g->host, 40) ||
 		!ReadI32(s, &g->dwMaxPlayers) ||
 		!ReadI32(s, &g->dwCurrentPlayers) ||
 		!ReadI32(s, &g->dwUserFlags[0]) ||
 		!ReadI32(s, &g->dwUserFlags[1]) ||
 		!ReadI32(s, &g->dwUserFlags[2]) ||
 		!ReadI32(s, &g->dwUserFlags[3]) ||
-		!ReadChars(s, (char*)g->secondaryHosts[0], 40) ||
-		!ReadChars(s, (char*)g->secondaryHosts[1], 40) ||
-		!ReadChars(s, (char*)g->extra, Lobbyextra_string_size) ||
+		!ReadString(s, g->secondaryHosts[0], 40) ||
+		!ReadString(s, g->secondaryHosts[1], 40) ||
+		!ReadString(s, g->extra, Lobbyextra_string_size) ||
 		!ReadU16(s, &g->hostPort) ||
-		!ReadChars(s, (char*)g->mapname, Lobbymap_string_size) ||
-		!ReadChars(s, (char*)g->hostname, Lobbyhostname_string_size) ||
-		!ReadChars(s, (char*)g->versionstring, LobbyStringSize) ||
-		!ReadChars(s, (char*)g->modlist, Lobbymodlist_string_size) ||
+		!ReadString(s, g->mapname, Lobbymap_string_size) ||
+		!ReadString(s, g->hostname, Lobbyhostname_string_size) ||
+		!ReadString(s, g->versionstring, LobbyStringSize) ||
+		!ReadString(s, g->modlist, Lobbymodlist_string_size) ||
 		!ReadU32(s, &g->game_version_major) ||
 		!ReadU32(s, &g->game_version_minor) ||
 		!ReadU32(s, &g->privateGame) ||
@@ -102,15 +113,6 @@ static bool ReadGAMESTRUCT(int s, LobbyGame* g) {
 	return true;
 }
 
-void FreeLobbyResponse(LobbyResponse* g) {
-	if(g->roomsLen > 0) {
-		free(g->rooms);
-	}
-	if(g->motdLen > 0) {
-		free(g->motd);
-	}
-}
-
 int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 	int s = OpenSocket();
 	if(s < 0) {
@@ -120,30 +122,39 @@ int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 	if(write(s, "list", strlen("list")) != strlen("list")) {
 		return 1;
 	}
-	r->roomsLen = -1;
-	if(!ReadU32(s, &r->roomsLen)) {
+	uint32_t roomsLen = -1;
+	if(!ReadU32(s, &roomsLen) || roomsLen < 0) {
 		return 1;
 	}
-	if(r->roomsLen > 0 && r->roomsLen < 100) {
-		r->rooms = (struct LobbyGame*)malloc(sizeof(struct LobbyGame)*r->roomsLen);
-	} else {
-		return 1;
-	}
-	for(int i=0; i<r->roomsLen; i++) {
-		if(!ReadGAMESTRUCT(s, &r->rooms[i])) {
+	for(int i=0; i<roomsLen; i++) {
+		struct LobbyGame g;
+		if(!ReadGAMESTRUCT(s, &g)) {
 			return 1;
 		}
+		r->rooms.push_back(g);
 	}
-	uint32_t code = -1;
-	if(!ReadU32(s, &code) || !ReadU32(s, &r->motdLen)) {
+	uint32_t code = -1, motdLen = 0, params = 0;
+	if( !ReadU32(s, &code) ||
+		!ReadU32(s, &motdLen) ||
+		!ReadString(s, r->motd, motdLen)) {
 		return 1;
 	}
-	r->motd = (char*)malloc(r->motdLen+1);
-	if(!r->motd) {
-		return 1;
+	if(!ReadU32(s, &params)) {
+		return 0;
 	}
-	if(!ReadChars(s, r->motd, r->motdLen)) {
-		return 1;
+	#define IGNORE_FIRST_BATCH 1
+	if((params & IGNORE_FIRST_BATCH) == IGNORE_FIRST_BATCH) {
+		r->rooms.clear();
+		if(!ReadU32(s, &roomsLen) || roomsLen < 0) {
+			return 1;
+		}
+		for(int i=0; i<roomsLen; i++) {
+			struct LobbyGame g;
+			if(!ReadGAMESTRUCT(s, &g)) {
+				return 1;
+			}
+			r->rooms.push_back(g);
+		}
 	}
 	return 0;
 }
