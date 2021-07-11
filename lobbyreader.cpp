@@ -45,6 +45,7 @@ static int OpenSocket(int t) {
 	struct hostent *he;
 	struct in_addr **addr_list;
 	if((he = gethostbyname("lobby.wz2100.net")) == NULL) {
+		close(s);
 		return -1;
 	}
 	addr_list = (struct in_addr **) he->h_addr_list;
@@ -52,9 +53,11 @@ static int OpenSocket(int t) {
 		strcpy(ip, inet_ntoa(*addr_list[i]));
 	}
 	if(inet_pton(AF_INET, ip, &serv_addr.sin_addr)<=0) {
+		close(s);
 		return -1;
 	}
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
+		close(s);
 		return -1;
 	}
 	return sockfd;
@@ -164,22 +167,27 @@ int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 	}
 	if( write(s, "list", strlen("list")) != strlen("list") ||
 		ReadRooms(s, r->rooms)) {
+		close(s);
 		return LOBBYREADER_FAIL;
 	}
 	uint32_t code = -1, motdLen = 0, params = 0;
 	if( ReadU32(s, &code) ||
 		ReadU32(s, &motdLen) ||
 		ReadString(s, r->motd, motdLen)) {
+		close(s);
 		return LOBBYREADER_FAIL;
 	}
 	if(ReadU32(s, &params)) {
+		close(s);
 		return LOBBYREADER_SUCCESS;
 	}
 	if((params & LOBBYREADER_IGNORE_FIRST_BATCH) == LOBBYREADER_IGNORE_FIRST_BATCH) {
 		r->rooms.clear();
 	}
 	if(ReadRooms(s, r->rooms)) {
+		close(s);
 		return LOBBYREADER_FAIL;
 	}
+	close(s);
 	return LOBBYREADER_SUCCESS;
 }
