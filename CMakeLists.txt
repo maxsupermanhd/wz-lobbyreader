@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.4.3)
-project(wz-lobbyreader)
+project(wz-lobbyreader VERSION 1.0)
 
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
