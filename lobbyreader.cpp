@@ -45,7 +45,7 @@ static int OpenSocket(int t) {
 	struct hostent *he;
 	struct in_addr **addr_list;
 	if((he = gethostbyname("lobby.wz2100.net")) == NULL) {
-		close(s);
+		close(sockfd);
 		return -1;
 	}
 	addr_list = (struct in_addr **) he->h_addr_list;
@@ -53,11 +53,11 @@ static int OpenSocket(int t) {
 		strcpy(ip, inet_ntoa(*addr_list[i]));
 	}
 	if(inet_pton(AF_INET, ip, &serv_addr.sin_addr)<=0) {
-		close(s);
+		close(sockfd);
 		return -1;
 	}
 	if(connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
-		close(s);
+		close(sockfd);
 		return -1;
 	}
 	return sockfd;
