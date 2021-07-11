@@ -11,6 +11,10 @@
 #define	Lobbyhostname_string_size 40
 #define Lobbymodlist_string_size 255
 
+#define LOBBYREADER_SUCCESS 0
+#define LOBBYREADER_FAIL 1
+#define LOBBYREADER_IGNORE_FIRST_BATCH 1
+
 struct LobbyGame {
 	uint32_t	GAMESTRUCT_VERSION;
 

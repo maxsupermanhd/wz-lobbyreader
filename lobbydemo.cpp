@@ -1,11 +1,13 @@
 #include "lobbyreader.h"
 
 #include <cstdio>
+#include <errno.h>
+#include <cstring>
 
 int main() {
 	struct LobbyResponse L;
-	if(GetLobby(&L)) {
-		printf("Error!\n");
+	if(GetLobby(&L) != LOBBYREADER_SUCCESS) {
+		printf("Error! Code %d: [%s]\n", errno, strerror(errno));
 		return 1;
 	}
 	printf("Games in lobby: %ld\n", L.rooms.size());
