@@ -113,7 +113,7 @@ endif()
 
 
 add_library(lobbyreader lobbyreader.cpp)
-target_include_directories(lobbyreader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(lobbyreader INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_executable(lobbydemo lobbydemo.cpp)
-target_link_libraries(lobbydemo LINK_PUBLIC lobbyreader)
+target_link_libraries(lobbydemo PUBLIC lobbyreader)
