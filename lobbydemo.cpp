@@ -16,9 +16,9 @@
 
 #include "lobbyreader.h"
 
-#include <cstdio>
+#include <stdio.h>
 #include <errno.h>
-#include <cstring>
+#include <string.h>
 
 int main() {
 	struct LobbyResponse L;

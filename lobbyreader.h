@@ -18,7 +18,7 @@
 #define LOBBYREADER_H_INCLUDED
 
 #include <vector>
-#include <cstdint>
+#include <stdint.h>
 #include <string>
 
 #define	LobbyStringSize 64

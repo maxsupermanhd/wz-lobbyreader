@@ -16,7 +16,7 @@
 
 #include "lobbyreader.h"
 
-#include <cstdlib>
+#include <stdlib.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
