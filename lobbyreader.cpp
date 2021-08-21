@@ -165,7 +165,7 @@ int GetLobby(struct LobbyResponse* r, int t /*= 3*/) {
 	if(s < 0) {
 		return LOBBYREADER_FAIL;
 	}
-	if( write(s, "list", strlen("list")) != strlen("list") ||
+	if( write(s, "list", strlen("list")+1) != strlen("list")+1 ||
 		ReadRooms(s, r->rooms)) {
 		close(s);
 		return LOBBYREADER_FAIL;
